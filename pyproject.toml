@@ -7,14 +7,20 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-xmltodict = "^0.14.2"
 pillow = "^11.1.0"
-
+pydantic-xml = "^2.14.1"
+semver = "^3.0.4"
+pybase64 = "^1.4.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 ruff = "^0.9.4"
 mypy = "^1.14.1"
+
+[tool.mypy]
+plugins = [
+  "pydantic_xml.mypy"
+]
 
 [build-system]
 requires = ["poetry-core"]

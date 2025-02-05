@@ -1,2 +1,1 @@
-<img src="https://github.com/user-attachments/assets/6b8dfa3e-010c-47e3-b45f-88cc2d787b67" alt="saltysplits_logo" width="300">
-
+<img src="https://github.com/user-attachments/assets/5863a3ed-0552-449f-8942-4378fbd1a59e" alt="saltysplits_logo" width="300">

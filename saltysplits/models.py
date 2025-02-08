@@ -6,6 +6,10 @@ from pydantic import field_serializer, field_validator
 from pydantic_xml import BaseXmlModel, attr, element, wrapped
 from pathlib import Path
 from saltysplits import DATETIME_FORMAT
+from PIL import Image
+from io import BytesIO
+from pydantic import ConfigDict
+import pybase64
 
 # TODO LSS format can vary per release,  and add conditional models for {1.0, 1.4, 1.5, 1.6}. Models are currently based on version XX
 # TODO add livesplit-core test runs (either directly or as submodule/sparse-checkout:)
@@ -13,6 +17,10 @@ from saltysplits import DATETIME_FORMAT
 # TODO use more appropriate types where possible (e.g. pathlib for layoutpath,
 #  pillow.Image for game_icon, semver.Version for version, datetime for dts, 
 # bools for bools). Also implement decoding/encoding for these elements.
+# TODO figure out how to compare Splits objects
+# TODO go through all example files, see if optional and types all work. Make tests for this
+
+
 
 class Splits(BaseXmlModel, tag="Run"):
     version: Optional[str] = attr(name='version', default=None)
@@ -26,6 +34,19 @@ class Splits(BaseXmlModel, tag="Run"):
     attempt_history: List[Attempt] = wrapped("AttemptHistory")
     segments: List[Segment] = wrapped("Segments")
     autosplittersettings: Optional[AutoSplitterSettings] = element(tag="AutoSplitterSettings", default=None)
+
+    @classmethod
+    def from_lss_file(cls, lss_path: Path) -> Splits:
+        with open(lss_path, "r", encoding="utf-8") as file:
+            xml_string = file.read()
+        return cls.from_xml(xml_string)
+
+    # @field_validator('game_icon', mode='before')
+    # def decode_content(cls, value: str) -> Image.Image:
+    #     icon_bytes = pybase64.b64decode(value, validate=True)
+    #     png_index = icon_bytes.index(b'\x89PNG\r\n\x1a\n')
+    #     img = Image.open(BytesIO(icon_bytes[png_index:]))
+    #     return img
 
 class Metadata(BaseXmlModel, tag="Metadata"):
     run: Optional[Run] = element(tag="Run", default=None)
@@ -97,6 +118,7 @@ if __name__ == "__main__":
     split_path = Path(__file__).parents[1] / "tests/run_files/livesplit1.0.lss"  
     split_path = Path(__file__).parents[1] / "tests/run_files/Tony Hawk's Underground - Any% (Beginner).lss"
 
+    #Splits.from_lss(split_path)
     with open(split_path, "r", encoding="utf-8") as file:
         xml_string = file.read()
 

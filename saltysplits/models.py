@@ -4,7 +4,7 @@ from semver.version import Version
 from pydantic import field_serializer, field_validator, BeforeValidator, PlainSerializer, BaseModel, SerializerFunctionWrapHandler
 from pydantic_xml import BaseXmlModel, attr, element, wrapped
 from pathlib import Path
-from saltysplits.annotations import OffsetOptional, TimeOptional, DateTime, SBool
+from saltysplits.annotations import TimeOptional, DateTime, SBool
 from PIL import Image
 from io import BytesIO
 from pydantic import ConfigDict
@@ -31,7 +31,7 @@ class Splits(BaseXmlModel, tag="Run"):
     category_name: str = element(tag="CategoryName")
     layout_path: Optional[str] = element(tag="LayoutPath", default=None)
     metadata: Optional[Metadata] = element(tag="Metadata", default=None)
-    offset: OffsetOptional = element(tag="Offset", default=Timedelta(0))
+    offset: TimeOptional = element(tag="Offset", default=Timedelta(0))
     attempt_count: Optional[int] = element(tag="AttemptCount", default=0)
     attempt_history: Optional[List[Attempt]] = wrapped("AttemptHistory", default=None)
     segments: List[Segment] = wrapped("Segments")
@@ -60,7 +60,7 @@ class Run(BaseXmlModel, tag="Run"):
     id: str = attr(name='id')
 
 class Platform(BaseXmlModel, tag="Platform"):
-    uses_emulator: bool = attr(name="usesEmulator", default=None)
+    uses_emulator: SBool = attr(name="usesEmulator", default=None)
     platform: str = None
 
 class Variable(BaseXmlModel, tag="Variable"):
@@ -104,11 +104,17 @@ class Time(BaseXmlModel, tag="Time"):
 class AutoSplitterSettings(BaseXmlModel, tag="AutoSplitterSettings"):
     version: Optional[str] = element(tag='version', default=None)
     custom_settings: Optional[str] = element(tag="CustomSettings", default=None)
+    splits: Optional[List[Split]]  = wrapped("Splits", default=None)
+
+class Split(BaseXmlModel, tag="Split"):
+    split_name: str
+
     
 # ensures all model elements are defined when we need them (without relying on arbritrary definition order)
 Splits.model_rebuild()
 Segment.model_rebuild()
 Metadata.model_rebuild()
+AutoSplitterSettings.model_rebuild()
 
 if __name__ == "__main__":
     split_path = Path(__file__).parents[1] / "tests/run_files/livesplit1.0.lss"  

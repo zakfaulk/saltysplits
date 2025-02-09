@@ -12,7 +12,6 @@ keywords = ["livesplit", "speedrunning", "pydantic", "xml", "gaming"]
 python = "^3.12"
 pillow = "^11.1.0"
 pydantic-xml = "^2.14.1"
-semver = "^3.0.4"
 pybase64 = "^1.4.0"
 pandas = "^2.2.3"
 
@@ -20,7 +19,7 @@ pandas = "^2.2.3"
 pytest = "^8.3.4"
 ruff = "^0.9.4"
 mypy = "^1.14.1"
-xmltodict = "^0.14.2"
+pre-commit = "^4.1.0"
 
 [tool.mypy]
 plugins = [

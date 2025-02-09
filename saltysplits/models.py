@@ -1,14 +1,9 @@
 from __future__ import annotations
 from typing import List, Optional
-from semver.version import Version
-from pydantic import field_serializer, field_validator, BeforeValidator, PlainSerializer, BaseModel, SerializerFunctionWrapHandler
 from pydantic_xml import BaseXmlModel, attr, element, wrapped
 from pathlib import Path
 from saltysplits.annotations import TimeOptional, DateTime, SBool
-from PIL import Image
-from io import BytesIO
 from pydantic import ConfigDict
-import pybase64
 from pandas import Timedelta
 
 # TODO LSS format can vary per release,  and add conditional models for {1.0, 1.4, 1.5, 1.6}. Models are currently based on version XX
@@ -44,6 +39,9 @@ class Splits(BaseXmlModel, tag="Run"):
         return cls.from_xml(xml_string)
         
     # @field_validator('game_icon', mode='before')
+    # from PIL import Image
+    # from io import BytesIO
+    # import pybase64
     # def decode_content(cls, value: str) -> Image.Image:
     #     icon_bytes = pybase64.b64decode(value, validate=True)
     #     png_index = icon_bytes.index(b'\x89PNG\r\n\x1a\n')

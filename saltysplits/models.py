@@ -1,13 +1,10 @@
 from __future__ import annotations
-import re
-from datetime import datetime
 from typing import List, Optional
-
 from semver.version import Version
-from pydantic import field_serializer, field_validator
+from pydantic import field_serializer, field_validator, BeforeValidator, PlainSerializer, BaseModel, SerializerFunctionWrapHandler
 from pydantic_xml import BaseXmlModel, attr, element, wrapped
 from pathlib import Path
-from saltysplits import DATETIME_FORMAT
+from saltysplits.annotations import OffsetOptional, TimeOptional, DateTime
 from PIL import Image
 from io import BytesIO
 from pydantic import ConfigDict
@@ -26,16 +23,16 @@ from pandas import Timedelta
 # TODO add day prefix to GameTime/RealTime encoder like livesplit-core
 
 
+
 class Splits(BaseXmlModel, tag="Run"):
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
     version: Optional[str] = attr(name='version', default=None)
     game_icon: Optional[str] = element(tag="GameIcon", default=None)
     game_name: str = element(tag="GameName")
     category_name: str = element(tag="CategoryName")
     layout_path: Optional[str] = element(tag="LayoutPath", default=None)
     metadata: Optional[Metadata] = element(tag="Metadata", default=None)
-    offset: Optional[Timedelta] = element(tag="Offset", default="00:00:00")
+    offset: OffsetOptional = element(tag="Offset", default=Timedelta(0))
     attempt_count: Optional[int] = element(tag="AttemptCount", default=0)
     attempt_history: Optional[List[Attempt]] = wrapped("AttemptHistory", default=None)
     segments: List[Segment] = wrapped("Segments")
@@ -46,18 +43,6 @@ class Splits(BaseXmlModel, tag="Run"):
         with open(lss_path, "r", encoding="utf-8") as file:
             xml_string = file.read()
         return cls.from_xml(xml_string)
-
-    @field_validator('offset', mode="before")
-    def decode_offset(cls, value: str) -> Timedelta:
-        hours, minutes, seconds = map(int, value.split(":"))
-        return Timedelta(hours=hours, minutes=minutes, seconds=seconds)
-
-    @field_serializer('offset', when_used='unless-none')
-    def encode_offset(self, content: Timedelta) -> str:
-        hours, remainder = divmod(content.value, 3600 * 10**9)
-        minutes, remainder = divmod(remainder, 60 * 10**9)
-        seconds = remainder // 10**9
-        return f"{hours:02}:{minutes:02}:{seconds:02}"
         
     # @field_validator('game_icon', mode='before')
     # def decode_content(cls, value: str) -> Image.Image:
@@ -85,43 +70,18 @@ class Variable(BaseXmlModel, tag="Variable"):
 
 class Attempt(BaseXmlModel, tag="Attempt"):
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    # <Attempt id="1" started="08/30/2015 19:18:51" isStartedSynced="True" ended="08/30/2015 19:34:04" isEndedSynced="True">
-    #parsed_time = datetime.strptime(time_str, "%m/%d/%Y %H:%M:%S")
     id: str = attr(name='id')
-    started: datetime = attr(name='started')
+    started: DateTime = attr(name='started')
     is_started_synced: bool = attr(name='isStartedSynced')
-    ended: datetime = attr(name='ended')
+    ended: DateTime = attr(name='ended')
     is_ended_synced: bool = attr(name='isEndedSynced')
-    real_time: Optional[Timedelta] = element(tag="RealTime", default=None)
-    game_time: Optional[Timedelta] = element(tag="GameTime", default=None)
-    
-    @field_validator('real_time', 'game_time', mode="before")
-    def decode_time(cls, value: str) -> Timedelta:
-        hours, minutes, seconds, fraction = map(int, re.split('[:.]', value))
-        nanoseconds = fraction * 100
-        return Timedelta(hours=hours, minutes=minutes, seconds=seconds, nanoseconds=nanoseconds)
-
-    @field_serializer('real_time', 'game_time',  when_used='unless-none')
-    def encode_time(self, content: Timedelta) -> str:
-        hours, remainder = divmod(content.value, 3600 * 10**9)
-        minutes, remainder = divmod(remainder, 60* 10**9)
-        seconds, remainder = divmod(remainder, 10**9)
-        nanoseconds = remainder // 100
-        return f"{hours:02}:{minutes:02}:{seconds:02}.{nanoseconds}"
+    real_time: TimeOptional = element(tag="RealTime", default=None)
+    game_time: TimeOptional = element(tag="GameTime", default=None)
     
     @field_serializer('is_started_synced', 'is_ended_synced', when_used='unless-none')
     def encode_bool(self, content: bool) -> str:
         return str(content) # ensures capitalizaton of bool
 
-    @field_validator('started', 'ended', mode="before")
-    def decode_datetime(cls, value: str) -> datetime:
-        return datetime.strptime(value, DATETIME_FORMAT)
-
-    @field_serializer('started', 'ended', when_used='unless-none')
-    def encode_datetime(self, content: datetime) -> str:
-        return content.strftime(DATETIME_FORMAT)
-
-    
 class Segment(BaseXmlModel, tag="Segment"):
     name: str = element(tag="Name")
     icon: Optional[str] = element(tag="Icon", default=None)
@@ -129,68 +89,22 @@ class Segment(BaseXmlModel, tag="Segment"):
     best_segment_time: BestSegmentTime
     segment_history: Optional[List[Time]] = wrapped("SegmentHistory", default=None)
     
-
 class SplitTime(BaseXmlModel, tag="SplitTime"):
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
     name: str = attr(name='name')
-    real_time: Optional[Timedelta] = element(tag="RealTime", default=None)
-    game_time: Optional[Timedelta] = element(tag="GameTime", default=None)
-
-    @field_validator('real_time', 'game_time', mode="before")
-    def decode_time(cls, value: str) -> Timedelta:
-        hours, minutes, seconds, fraction = map(int, re.split('[:.]', value))
-        nanoseconds = fraction * 100
-        return Timedelta(hours=hours, minutes=minutes, seconds=seconds, nanoseconds=nanoseconds)
-
-    @field_serializer('real_time', 'game_time',  when_used='unless-none')
-    def encode_time(self, content: Timedelta) -> str:
-        hours, remainder = divmod(content.value, 3600 * 10**9)
-        minutes, remainder = divmod(remainder, 60* 10**9)
-        seconds, remainder = divmod(remainder, 10**9)
-        nanoseconds = remainder // 100
-        return f"{hours:02}:{minutes:02}:{seconds:02}.{nanoseconds}"
+    real_time: TimeOptional = element(tag="RealTime", default=None)
+    game_time: TimeOptional = element(tag="GameTime", default=None)
 
 class BestSegmentTime(BaseXmlModel, tag="BestSegmentTime"):
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    real_time: Optional[Timedelta] = element(tag="RealTime", default=None)
-    game_time: Optional[Timedelta] = element(tag="GameTime", default=None)
-
-    @field_validator('real_time', 'game_time', mode="before")
-    def decode_time(cls, value: str) -> Timedelta:
-        hours, minutes, seconds, fraction = map(int, re.split('[:.]', value))
-        nanoseconds = fraction * 100
-        return Timedelta(hours=hours, minutes=minutes, seconds=seconds, nanoseconds=nanoseconds)
-
-    @field_serializer('real_time', 'game_time',  when_used='unless-none')
-    def encode_time(self, content: Timedelta) -> str:
-        hours, remainder = divmod(content.value, 3600 * 10**9)
-        minutes, remainder = divmod(remainder, 60* 10**9)
-        seconds, remainder = divmod(remainder, 10**9)
-        nanoseconds = remainder // 100
-        return f"{hours:02}:{minutes:02}:{seconds:02}.{nanoseconds}"
+    real_time: TimeOptional = element(tag="RealTime", default=None)
+    game_time: TimeOptional = element(tag="GameTime", default=None)
 
 class Time(BaseXmlModel, tag="Time"):
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    
     id: str = attr(name='id')
-    real_time: Optional[Timedelta] = element(tag="RealTime", default=None)
-    game_time: Optional[Timedelta] = element(tag="GameTime", default=None)
-
-    @field_validator('real_time', 'game_time', mode="before")
-    def decode_time(cls, value: str) -> Timedelta:
-        hours, minutes, seconds, fraction = map(int, re.split('[:.]', value))
-        nanoseconds = fraction * 100
-        return Timedelta(hours=hours, minutes=minutes, seconds=seconds, nanoseconds=nanoseconds)
-
-    @field_serializer('real_time', 'game_time',  when_used='unless-none')
-    def encode_time(self, content: Timedelta) -> str:
-        hours, remainder = divmod(content.value, 3600 * 10**9)
-        minutes, remainder = divmod(remainder, 60* 10**9)
-        seconds, remainder = divmod(remainder, 10**9)
-        nanoseconds = remainder // 100
-        return f"{hours:02}:{minutes:02}:{seconds:02}.{nanoseconds}"
+    real_time: TimeOptional = element(tag="RealTime", default=None)
+    game_time: TimeOptional = element(tag="GameTime", default=None)
     
 class AutoSplitterSettings(BaseXmlModel, tag="AutoSplitterSettings"):
     version: Optional[str] = element(tag='version', default=None)

@@ -64,4 +64,9 @@ DateTime = Annotated[
 ]
 
 
-    
+SBool = Annotated[
+    bool,
+    PlainSerializer(lambda x: str(x), when_used="unless-none"),
+    BeforeValidator(lambda x: bool(x)),
+]
+

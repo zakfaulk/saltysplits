@@ -4,7 +4,7 @@ from semver.version import Version
 from pydantic import field_serializer, field_validator, BeforeValidator, PlainSerializer, BaseModel, SerializerFunctionWrapHandler
 from pydantic_xml import BaseXmlModel, attr, element, wrapped
 from pathlib import Path
-from saltysplits.annotations import OffsetOptional, TimeOptional, DateTime
+from saltysplits.annotations import OffsetOptional, TimeOptional, DateTime, SBool
 from PIL import Image
 from io import BytesIO
 from pydantic import ConfigDict
@@ -18,7 +18,6 @@ from pandas import Timedelta
 # bools for bools). Also implement decoding/encoding for these elements.
 # TODO figure out how to compare Splits objects
 # TODO go through all example files, see if optional and types all work. Make tests for this
-# TODO add Timedelta decoding (e.g. "%H:%M:%S.%7N" for real_time/game_time) 
 # TODO move model_config and generic functionality to custom BaseXmlModel
 # TODO add day prefix to GameTime/RealTime encoder like livesplit-core
 
@@ -72,16 +71,12 @@ class Attempt(BaseXmlModel, tag="Attempt"):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: str = attr(name='id')
     started: DateTime = attr(name='started')
-    is_started_synced: bool = attr(name='isStartedSynced')
+    is_started_synced: SBool = attr(name='isStartedSynced')
     ended: DateTime = attr(name='ended')
-    is_ended_synced: bool = attr(name='isEndedSynced')
+    is_ended_synced: SBool = attr(name='isEndedSynced')
     real_time: TimeOptional = element(tag="RealTime", default=None)
     game_time: TimeOptional = element(tag="GameTime", default=None)
     
-    @field_serializer('is_started_synced', 'is_ended_synced', when_used='unless-none')
-    def encode_bool(self, content: bool) -> str:
-        return str(content) # ensures capitalizaton of bool
-
 class Segment(BaseXmlModel, tag="Segment"):
     name: str = element(tag="Name")
     icon: Optional[str] = element(tag="Icon", default=None)

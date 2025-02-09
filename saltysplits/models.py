@@ -23,6 +23,8 @@ from pandas import Timedelta
 # TODO go through all example files, see if optional and types all work. Make tests for this
 # TODO add Timedelta decoding (e.g. "%H:%M:%S.%7N" for real_time/game_time) 
 # TODO move model_config and generic functionality to custom BaseXmlModel
+# TODO add day prefix to GameTime/RealTime encoder like livesplit-core
+
 
 class Splits(BaseXmlModel, tag="Run"):
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -50,13 +52,13 @@ class Splits(BaseXmlModel, tag="Run"):
         hours, minutes, seconds = map(int, value.split(":"))
         return Timedelta(hours=hours, minutes=minutes, seconds=seconds)
 
-    # @field_serializer('offset', when_used='unless-none')
-    # def encode_content(self, content: Timedelta) -> str:
-    #     #total_seconds() likely wrong now
-    #     hours, remainder = divmod(content.total_seconds(), 3600)
-    #     minutes, seconds = divmod(remainder, 60)
-    #     return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
-
+    @field_serializer('offset', when_used='unless-none')
+    def encode_content(self, content: Timedelta) -> str:
+        hours, remainder = divmod(content.value, 3600 * 10**9)
+        minutes, remainder = divmod(remainder, 60 * 10**9)
+        seconds = remainder // 10**9
+        return f"{hours:02}:{minutes:02}:{seconds:02}"
+        
     # @field_validator('game_icon', mode='before')
     # def decode_content(cls, value: str) -> Image.Image:
     #     icon_bytes = pybase64.b64decode(value, validate=True)
@@ -95,8 +97,18 @@ class Attempt(BaseXmlModel, tag="Attempt"):
     
     @field_validator('real_time', 'game_time', mode="before")
     def decode_content(cls, value: str) -> Timedelta:
-        hours, minutes, seconds, microseconds  = map(int, re.split('[:.]', value))        
-        return Timedelta(hours=hours, minutes=minutes, seconds=seconds, microseconds=microseconds)
+        hours, minutes, seconds, fraction = map(int, re.split('[:.]', value))
+        nanoseconds = fraction * 100
+        return Timedelta(hours=hours, minutes=minutes, seconds=seconds, nanoseconds=nanoseconds)
+
+    @field_serializer('real_time', 'game_time',  when_used='unless-none')
+    def encode_content(self, content: Timedelta) -> str:
+        hours, remainder = divmod(content.value, 3600 * 10**9)
+        minutes, remainder = divmod(remainder, 60* 10**9)
+        seconds, remainder = divmod(remainder, 10**9)
+        nanoseconds = remainder // 100
+        return f"{hours:02}:{minutes:02}:{seconds:02}.{nanoseconds}"
+    
 
     # @field_serializer('started', 'ended', when_used='unless-none')
     # def encode_content(self, content: datetime) -> str:
@@ -123,8 +135,17 @@ class SplitTime(BaseXmlModel, tag="SplitTime"):
 
     @field_validator('real_time', 'game_time', mode="before")
     def decode_content(cls, value: str) -> Timedelta:
-        hours, minutes, seconds, microseconds  = map(int, re.split('[:.]', value))        
-        return Timedelta(hours=hours, minutes=minutes, seconds=seconds, microseconds=microseconds)
+        hours, minutes, seconds, fraction = map(int, re.split('[:.]', value))
+        nanoseconds = fraction * 100
+        return Timedelta(hours=hours, minutes=minutes, seconds=seconds, nanoseconds=nanoseconds)
+
+    @field_serializer('real_time', 'game_time',  when_used='unless-none')
+    def encode_content(self, content: Timedelta) -> str:
+        hours, remainder = divmod(content.value, 3600 * 10**9)
+        minutes, remainder = divmod(remainder, 60* 10**9)
+        seconds, remainder = divmod(remainder, 10**9)
+        nanoseconds = remainder // 100
+        return f"{hours:02}:{minutes:02}:{seconds:02}.{nanoseconds}"
 
 class BestSegmentTime(BaseXmlModel, tag="BestSegmentTime"):
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -134,8 +155,17 @@ class BestSegmentTime(BaseXmlModel, tag="BestSegmentTime"):
 
     @field_validator('real_time', 'game_time', mode="before")
     def decode_content(cls, value: str) -> Timedelta:
-        hours, minutes, seconds, microseconds  = map(int, re.split('[:.]', value))        
-        return Timedelta(hours=hours, minutes=minutes, seconds=seconds, microseconds=microseconds)
+        hours, minutes, seconds, fraction = map(int, re.split('[:.]', value))
+        nanoseconds = fraction * 100
+        return Timedelta(hours=hours, minutes=minutes, seconds=seconds, nanoseconds=nanoseconds)
+
+    @field_serializer('real_time', 'game_time',  when_used='unless-none')
+    def encode_content(self, content: Timedelta) -> str:
+        hours, remainder = divmod(content.value, 3600 * 10**9)
+        minutes, remainder = divmod(remainder, 60* 10**9)
+        seconds, remainder = divmod(remainder, 10**9)
+        nanoseconds = remainder // 100
+        return f"{hours:02}:{minutes:02}:{seconds:02}.{nanoseconds}"
 
 class Time(BaseXmlModel, tag="Time"):
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -146,8 +176,17 @@ class Time(BaseXmlModel, tag="Time"):
 
     @field_validator('real_time', 'game_time', mode="before")
     def decode_content(cls, value: str) -> Timedelta:
-        hours, minutes, seconds, microseconds  = map(int, re.split('[:.]', value))        
-        return Timedelta(hours=hours, minutes=minutes, seconds=seconds, microseconds=microseconds)
+        hours, minutes, seconds, fraction = map(int, re.split('[:.]', value))
+        nanoseconds = fraction * 100
+        return Timedelta(hours=hours, minutes=minutes, seconds=seconds, nanoseconds=nanoseconds)
+
+    @field_serializer('real_time', 'game_time',  when_used='unless-none')
+    def encode_content(self, content: Timedelta) -> str:
+        hours, remainder = divmod(content.value, 3600 * 10**9)
+        minutes, remainder = divmod(remainder, 60* 10**9)
+        seconds, remainder = divmod(remainder, 10**9)
+        nanoseconds = remainder // 100
+        return f"{hours:02}:{minutes:02}:{seconds:02}.{nanoseconds}"
     
 class AutoSplitterSettings(BaseXmlModel, tag="AutoSplitterSettings"):
     version: Optional[str] = element(tag='version', default=None)

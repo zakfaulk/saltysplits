@@ -2,8 +2,7 @@ import pytest
 import requests
 import pathlib
 from urllib.error import HTTPError
-import xml.etree.ElementTree as ET
-import xmltodict
+
 
 LSS_DIR = pathlib.Path(__file__).parent / "run_files"
 # names come from livesplit-core/tests/run_files/mod.rs

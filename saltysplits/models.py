@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import List, Optional
 from pydantic_xml import BaseXmlModel, attr, element, wrapped
 from pathlib import Path
-from saltysplits.annotations import TimeOptional, DateTime, SBool
+from saltysplits.annotations import TimeOptional, DateTime, SBool, OffsetOptional
 from pydantic import ConfigDict
 from pandas import Timedelta
 
@@ -14,9 +14,8 @@ from pandas import Timedelta
 # TODO figure out how to compare Splits objects
 # TODO go through all example files, see if optional and types all work. Make tests for this
 # TODO move model_config and generic functionality to custom BaseXmlModel
-# TODO add day prefix to GameTime/RealTime encoder like livesplit-core
-
-
+# TODO use explicit ifSet and formatting to check if field is there, even if empty (probably all EXTRA and maybe don't set optional)
+# TODO check if ID can be interpreted as int
 
 class Splits(BaseXmlModel, tag="Run"):
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -26,7 +25,7 @@ class Splits(BaseXmlModel, tag="Run"):
     category_name: str = element(tag="CategoryName")
     layout_path: Optional[str] = element(tag="LayoutPath", default=None)
     metadata: Optional[Metadata] = element(tag="Metadata", default=None)
-    offset: TimeOptional = element(tag="Offset", default=Timedelta(0))
+    offset: OffsetOptional = element(tag="Offset", default=Timedelta(0))
     attempt_count: Optional[int] = element(tag="AttemptCount", default=0)
     attempt_history: Optional[List[Attempt]] = wrapped("AttemptHistory", default=None)
     segments: List[Segment] = wrapped("Segments")
@@ -34,20 +33,10 @@ class Splits(BaseXmlModel, tag="Run"):
 
     @classmethod
     def from_lss_file(cls, lss_path: Path) -> Splits:
-        with open(lss_path, "r", encoding="utf-8") as file:
-            xml_string = file.read()
-        return cls.from_xml(xml_string)
+        with open(lss_path, "rb") as file:
+            xml_bytes = file.read()
+        return cls.from_xml(xml_bytes)
         
-    # @field_validator('game_icon', mode='before')
-    # from PIL import Image
-    # from io import BytesIO
-    # import pybase64
-    # def decode_content(cls, value: str) -> Image.Image:
-    #     icon_bytes = pybase64.b64decode(value, validate=True)
-    #     png_index = icon_bytes.index(b'\x89PNG\r\n\x1a\n')
-    #     img = Image.open(BytesIO(icon_bytes[png_index:]))
-    #     return img
-
 class Metadata(BaseXmlModel, tag="Metadata"):
     run: Optional[Run] = element(tag="Run", default=None)
     platform: Optional[Platform] = element(tag="Platform", default=None)

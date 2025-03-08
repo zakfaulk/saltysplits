@@ -1,12 +1,11 @@
 from __future__ import annotations
-from typing import List, Optional
-from pydantic_xml import BaseXmlModel, attr, element, wrapped
-from pathlib import Path
-from saltysplits.annotations import TimeOptional, DateTime, SBool, OffsetOptional
 from pandas import Timedelta
 from pydantic import conint
+from pydantic_xml import BaseXmlModel, attr, element, wrapped
+from typing import List, Optional
+from saltysplits.annotations import TimeOptional, DateTime, SBool, OffsetOptional
 
-
+    
 class Splits(
     BaseXmlModel, tag="Run", arbitrary_types_allowed=True, search_mode="ordered"
 ):
@@ -19,13 +18,7 @@ class Splits(
     attempt_count: Optional[conint(ge=0)] = element(tag="AttemptCount", default=0)
     attempt_history: Optional[List[Attempt]] = wrapped("AttemptHistory", default=None)
     segments: List[Segment] = wrapped("Segments")
-
-    @classmethod
-    def from_lss_file(cls, lss_path: Path) -> Splits:
-        with open(lss_path, "rb") as file:
-            xml_bytes = file.read()
-        return cls.from_xml(xml_bytes)
-
+    
 
 class BaseTime(BaseXmlModel, arbitrary_types_allowed=True, search_mode="ordered"):
     real_time: TimeOptional = element(tag="RealTime", default=None)
@@ -34,13 +27,13 @@ class BaseTime(BaseXmlModel, arbitrary_types_allowed=True, search_mode="ordered"
 
 class Attempt(BaseTime, tag="Attempt"):
     id: str = attr(name="id")
-    started: DateTime = attr(name="started")
-    is_started_synced: SBool = attr(name="isStartedSynced")
-    ended: DateTime = attr(name="ended")
-    is_ended_synced: SBool = attr(name="isEndedSynced")
+    started: Optional[DateTime] = attr(name="started", default=None)
+    is_started_synced: Optional[SBool] = attr(name="isStartedSynced", default=None)
+    ended: Optional[DateTime] = attr(name="ended", default=None)
+    is_ended_synced: Optional[SBool] = attr(name="isEndedSynced", default=None)
 
 
-class Segment(BaseXmlModel, tag="Segment", search_mode="ordered"):
+class Segment(BaseXmlModel, tag="Segment", arbitrary_types_allowed=True, search_mode="ordered"):
     name: str = element(tag="Name")
     icon: Optional[str] = element(tag="Icon", default=None)
     split_times: List[SplitTime] = wrapped("SplitTimes")

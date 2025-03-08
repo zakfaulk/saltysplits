@@ -1,9 +1,9 @@
 import re
-from datetime import datetime
-from typing import Optional, Annotated, List
-from pydantic import BeforeValidator, PlainSerializer
 from pandas import Timedelta
-from saltysplits import DATETIME_FORMAT, NANOSECONDS_DAY, NANOSECONDS_HOUR, NANOSECONDS_MINUTE, NANOSECONDS_SECOND
+from datetime import datetime
+from pydantic import BeforeValidator, PlainSerializer
+from typing import Optional, Annotated, List
+from saltysplits.constants import DATETIME_FORMAT, NANOSECONDS_DAY, NANOSECONDS_HOUR, NANOSECONDS_MINUTE, NANOSECONDS_SECOND
 
 
 def decode_time(value: str) -> Timedelta:

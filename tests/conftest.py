@@ -2,6 +2,7 @@ import pytest
 import requests
 import pathlib
 from urllib.error import HTTPError
+from lxml.etree import Element
 
 
 LSS_DIR = pathlib.Path(__file__).parent / "run_files"
@@ -31,6 +32,20 @@ INVALID_SPLITS = [
     LIVESPLIT_FUZZ_CRASH,
 ]
 
+def drop_empty_tags(element: Element, top_level=True) -> None:
+    """Removes empty XML tags from a given LXML ElementTree
+
+    Args:
+        element (Element): Root XML element from which empty elements should be removed
+        top_level (bool, optional): Whether to only check direct children or all children (recursively)
+    """
+    # dropping empty tags before comparison, no way to catch that AND actually optional elements (e.g. real_time and/or game_time)
+    children = list(element) if top_level else list(element.iter())
+    for child in children:
+        if len(child) == 0 and not child.text and not child.attrib:
+            parent = child.getparent()
+            if parent is not None:
+                parent.remove(child)
 
 def get_run_files(lss_dir: pathlib.Path) -> None:
     api_url = (

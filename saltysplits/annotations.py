@@ -36,10 +36,11 @@ def parse_timedelta(timedelta: Timedelta) -> List[int]:
     return days, hours, minutes, seconds, nanoseconds
 
 
-def encode_time(content: Timedelta) -> str:
+def encode_time(content: Timedelta, include_ns: bool = True) -> str:
     # always adds n_nanoseconds suffix but only adds n_days prefix if not 0
     days, hours, minutes, seconds, nanoseconds = parse_timedelta(timedelta=content)
-    delta_string = f"{hours:02}:{minutes:02}:{seconds:02}.{nanoseconds:07}"
+    delta_string = f"{hours:02}:{minutes:02}:{seconds:02}"
+    delta_string = f"{delta_string}.{nanoseconds:07}" if include_ns else delta_string
     delta_string = f"{days}.{delta_string}" if days else delta_string
     return delta_string
 

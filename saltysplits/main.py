@@ -26,8 +26,17 @@ class SaltySplits(Splits):
         if all(map(lambda x: str(int(x)) == x, run_ids)):
             run_ids = sorted(run_ids, key=lambda x: int(x))
         return run_ids
-        
-    def to_df(self, time_type: TimeType = TimeType.REAL_TIME, allow_partial: bool = False, cumulative: bool = False, lss_repr: bool = False) -> pd.DataFrame:
+    
+    def is_comparable(self, other: SaltySplits, strict: bool = True) -> bool:
+        # checks if two SS instances shares the same game / category / segment names
+        # strict also requires identical segment names (not just segment counts)
+        same_game = self.game_name == other.game_name
+        same_category = self.category_name == other.category_name
+        same_count = len(self.segments) == len(other.segments)
+        same_segments = all([self.segments[i].name == other.segments[i].name for i in range(len(self.segments))]) if same_count and strict else not strict
+        return all([same_game, same_category, same_count, same_segments])
+            
+    def to_df(self, time_type: TimeType = TimeType.REAL_TIME, allow_partial: bool = False, allow_empty: bool = False, cumulative: bool = False, lss_repr: bool = False, lss_ns: bool = True) -> pd.DataFrame:
         run_ids = self._collect_ids() 
         segment_names = [segment.name for segment in self.segments]
         placeholder_data = np.full((len(segment_names), len(run_ids)), np.timedelta64('NaT', 'ns'))
@@ -40,17 +49,21 @@ class SaltySplits(Splits):
                 elif time_type == time_type.REAL_TIME:
                     time = split.real_time
                 placeholder_df.loc[segment.name, split.id] = time
-
-        if not allow_partial:
-            # drops runs that have one or more NaT values (i.e. missing splits)
-            placeholder_df = placeholder_df.loc[:, ~placeholder_df.isna().any()]
         
+        if not allow_partial:
+            # drops runs that have one or more NaT values (i.e. incomplete runs)
+            placeholder_df = placeholder_df.loc[:, ~placeholder_df.isna().any()]
+            
+        if not allow_empty:
+            # drops runs that only have NaT values (i.e. empty runs)
+            placeholder_df = placeholder_df.loc[:, ~placeholder_df.isna().all()]
+
         if cumulative:
             # skipna ensures that we stop accumulating if we miss a split in beween
             placeholder_df = placeholder_df.apply(lambda column: column.cumsum(skipna=False))
         
         if lss_repr:
             # formats timedelta values to same string representation as used in LSS files
-            placeholder_df = placeholder_df.map(encode_time)
+            placeholder_df = placeholder_df.map(lambda x: encode_time(x, include_ns=lss_ns) if pd.notna(x) else None) 
 
         return placeholder_df

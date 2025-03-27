@@ -5,10 +5,9 @@ from pydantic_xml import BaseXmlModel, attr, element, wrapped
 from typing import List, Optional
 from saltysplits.annotations import TimeOptional, DateTime, SBool, OffsetOptional
 
-    
+
 class Splits(
-    BaseXmlModel, tag="Run", arbitrary_types_allowed=True, search_mode="ordered"
-):
+    BaseXmlModel, tag="Run", arbitrary_types_allowed=True, search_mode="ordered"):
     version: Optional[str] = attr(name="version", default=None)
     game_icon: Optional[str] = element(tag="GameIcon", default=None)
     game_name: str = element(tag="GameName")
@@ -18,7 +17,7 @@ class Splits(
     attempt_count: Optional[conint(ge=0)] = element(tag="AttemptCount", default=0)
     attempt_history: Optional[List[Attempt]] = wrapped("AttemptHistory", default=None)
     segments: List[Segment] = wrapped("Segments")
-    
+
 
 class BaseTime(BaseXmlModel, arbitrary_types_allowed=True, search_mode="ordered"):
     real_time: TimeOptional = element(tag="RealTime", default=None)
@@ -33,7 +32,8 @@ class Attempt(BaseTime, tag="Attempt"):
     is_ended_synced: Optional[SBool] = attr(name="isEndedSynced", default=None)
 
 
-class Segment(BaseXmlModel, tag="Segment", arbitrary_types_allowed=True, search_mode="ordered"):
+class Segment(
+    BaseXmlModel, tag="Segment", arbitrary_types_allowed=True, search_mode="ordered"):
     name: str = element(tag="Name")
     icon: Optional[str] = element(tag="Icon", default=None)
     split_times: List[SplitTime] = wrapped("SplitTimes")

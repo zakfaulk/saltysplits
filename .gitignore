@@ -172,4 +172,3 @@ cython_debug/
 
 # livesplit-core run_files
 tests/run_files/*
-!tests/run_files/Grand Theft Auto Vice City - Any% (No SSU).lss

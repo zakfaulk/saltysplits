@@ -13,14 +13,16 @@ python = "^3.12"
 pillow = "^11.1.0"
 pybase64 = "^1.4.0"
 pandas = "^2.2.3"
-pydantic-xml = {extras = ["lxml"], version = "^2.14.1"}
-streamlit = "^1.43.1"
-
+pydantic-xml = { version = "^2.14.1", extras = ["lxml"] }
+streamlit = { version = "^1.43.1", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 ruff = "^0.9.4"
 mypy = "^1.14.1"
+
+[tool.poetry.extras]
+streamlit = ["streamlit"]
 
 [tool.mypy]
 plugins = [

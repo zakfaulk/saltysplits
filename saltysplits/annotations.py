@@ -7,17 +7,25 @@ from saltysplits.constants import DATETIME_FORMAT, NANOSECONDS_DAY, NANOSECONDS_
 
 
 def decode_time(value: str) -> Timedelta:
+    """
+    Decodes a string using LSS` time representation as a pandas.Timedelta object (including optional days prefix)
+
+    Args:
+        value (str): String using LSS' time representation (e.g. "1.01:55:11.1422649") 
+                    
+    Returns:
+        Timedelta: Timedelta representation of the input string 
+    """
+
     pattern = re.compile(
         r"^(?:(?P<days>\d+)\.)?(?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>\d+)(?:\.(?P<fraction>\d+))?$"
     )
     match = pattern.match(value)
-    assert match, (
-        "Invalid time format, expected 'HH:MM:SS' (with optional days prefix and fraction suffix)"
-    )
-
+    assert match, "Invalid time format, expected 'HH:MM:SS' (with optional days prefix and fraction suffix)"
     groups = match.group("days", "hours", "minutes", "seconds", "fraction")
     days, hours, minutes, seconds, fraction = map(lambda x: int(x) if x else 0, groups)
     nanoseconds = fraction * 100
+
     return Timedelta(
         days=days,
         hours=hours,
@@ -28,6 +36,17 @@ def decode_time(value: str) -> Timedelta:
 
 
 def parse_timedelta(timedelta: Timedelta) -> List[int]:
+    """
+    Decomposes a Timedelta object into its equivalent days, hours, minutes, seconds 
+    and nanoseconds. Divmod is used to prevent floating-point errors
+    
+    Args:
+        timedelta (Timedelta): Timedelta object to decompose 
+
+    Returns:
+        List[int]: Integer list containing days, hours, minutes, seconds and nanoseconds
+    """
+
     days, remainder = divmod(timedelta.value, NANOSECONDS_DAY)
     hours, remainder = divmod(remainder, NANOSECONDS_HOUR)
     minutes, remainder = divmod(remainder, NANOSECONDS_MINUTE)
@@ -37,7 +56,18 @@ def parse_timedelta(timedelta: Timedelta) -> List[int]:
 
 
 def encode_time(content: Timedelta, include_ns: bool = True) -> str:
-    # always adds n_nanoseconds suffix but only adds n_days prefix if not 0
+    """
+    Encodes a Timedelta object as the same string format used in the LSS files (i.e. 'HH:MM:SS' with optional days prefix and fractional seconds suffix)
+    
+    Args:
+        content (Timedelta): Timedelta object to represent as string using LSS' time representation
+        include_ns (bool, optional): Whether to include nanoseconds in the formatted string. Defaults to True.
+
+    Returns:
+        str: LSS string representation of input Timedelta object
+    """
+
+    # optionally adds n_nanoseconds suffix but only adds n_days prefix if not 0
     days, hours, minutes, seconds, nanoseconds = parse_timedelta(timedelta=content)
     delta_string = f"{hours:02}:{minutes:02}:{seconds:02}"
     delta_string = f"{delta_string}.{nanoseconds:07}" if include_ns else delta_string
@@ -46,6 +76,17 @@ def encode_time(content: Timedelta, include_ns: bool = True) -> str:
 
 
 def encode_offset(content: Timedelta) -> str:
+    """
+    Encodes a Timedelta object as the same string format used in the LSS files (i.e. 'HH:MM:SS' with optional days prefix and fractional seconds suffix)
+    
+    Args:
+        content (Timedelta): Timedelta object to represent as string using LSS' time representation
+        include_ns (bool, optional): Whether to include nanoseconds in the formatted string. Defaults to True.
+
+    Returns:
+        str: LSS string representation of input Timedelta object
+    """
+
     # only adds n_nanoseconds suffix and n_days prefix if not 0
     days, hours, minutes, seconds, nanoseconds = parse_timedelta(timedelta=content)
     delta_string = f"{hours:02}:{minutes:02}:{seconds:02}"

@@ -1,5 +1,4 @@
 import pytest  # noqa: F401
-import pandas as pd
 import numpy as np
 import lxml.etree as ET
 from saltysplits import SaltySplits as ss

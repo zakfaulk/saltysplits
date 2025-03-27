@@ -1,6 +1,6 @@
 import pathlib 
 from .main import SaltySplits
-from .enums import TimeType
+from .enums import TimeType as TimeType
 from functools import partial as _partial
 
 DEMO_SPLITS = pathlib.Path( __file__).parents[1] / "tests/run_files/gcb.lss"

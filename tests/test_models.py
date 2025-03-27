@@ -1,7 +1,6 @@
 import pytest  # noqa: F401
 import lxml.etree as ET
 from saltysplits.models import Splits, Attempt, Segment, SplitTime, Time
-from lxml.etree import Element
 from .conftest import drop_empty_tags
 
 

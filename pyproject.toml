@@ -25,6 +25,9 @@ mypy = "^1.14.1"
 streamlit = ["streamlit"]
 
 [tool.mypy]
+exclude = [
+  "saltysplits/streamlit.py"
+]
 plugins = [
   "pydantic_xml.mypy"
 ]
@@ -58,6 +61,7 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
+    "saltysplits/streamlit.py"
 ]
 
 # Same as Black.

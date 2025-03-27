@@ -47,7 +47,7 @@ jobs:
       - name: Authorize GitHub Actions to publish on PYPI
         run: poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
         if: steps.build.outcome == 'success'
-        
+
       - name: Publish on PYPI
         run: poetry publish
         if: steps.build.outcome == 'success'
@@ -74,7 +74,7 @@ jobs:
         id: collect
         if: ${{ needs.build.outputs.PASSED_BUILD }} == 'success'
       - name: Upload all artifacts to Github 
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: steps.collect.outcome == 'success'
         with:
           files: ${{ needs.build.outputs.RELEASE_NAME }}/*

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "saltysplits"
-version = "0.1.0"
+version = "0.1.1"
 description = "Toolset for modeling of LiveSplit files and analysis of the speedrunning data within"
 authors = ["Jasper <j.siebring92@gmail.com>"]
 readme = "README.md"

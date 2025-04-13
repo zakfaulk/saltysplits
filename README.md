@@ -1,4 +1,4 @@
-<img src="docs/assets/images/logo.png" alt="export" width="300">
+<img src="https://raw.githubusercontent.com/jaspersiebring/saltysplits/refs/heads/main/docs/assets/images/logo.png" alt="export" width="300">
 
 [![PyPI](https://img.shields.io/pypi/v/saltysplits)](https://pypi.org/project/saltysplits/)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/saltysplits)
@@ -338,7 +338,7 @@ streamlit run ./saltysplits/streamlit.py
 
 Simply right-click your LiveSplit window and select `Save Splits As...`:
 
-<img src="docs/assets/images/export.png" alt="export" width="300">
+<img src="https://raw.githubusercontent.com/jaspersiebring/saltysplits/refs/heads/main/docs/assets/images/export.png" alt="export" width="300">
 
 You can then load it with either the `saltysplits` module or the `streamlit` front-end (self-hosted or through [SaltySplits.com](http://saltysplits.com/))
 

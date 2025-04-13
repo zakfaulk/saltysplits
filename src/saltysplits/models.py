@@ -6,9 +6,7 @@ from typing import List, Optional
 from saltysplits.annotations import TimeOptional, DateTime, SBool, OffsetOptional
 
 
-class Splits(
-    BaseXmlModel, tag="Run", arbitrary_types_allowed=True, search_mode="ordered"
-):
+class Splits(BaseXmlModel, tag="Run", arbitrary_types_allowed=True, search_mode="ordered"):
     version: Optional[str] = attr(name="version", default=None)
     game_icon: Optional[str] = element(tag="GameIcon", default=None)
     game_name: str = element(tag="GameName")
@@ -33,9 +31,7 @@ class Attempt(BaseTime, tag="Attempt"):
     is_ended_synced: Optional[SBool] = attr(name="isEndedSynced", default=None)
 
 
-class Segment(
-    BaseXmlModel, tag="Segment", arbitrary_types_allowed=True, search_mode="ordered"
-):
+class Segment(BaseXmlModel, tag="Segment", arbitrary_types_allowed=True, search_mode="ordered"):
     name: str = element(tag="Name")
     icon: Optional[str] = element(tag="Icon", default=None)
     split_times: List[SplitTime] = wrapped("SplitTimes")

@@ -71,11 +71,11 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
-    "saltysplits/streamlit.py"
+    "src/saltysplits/streamlit.py"
 ]
 
 # Same as Black.
-line-length = 88
+line-length = 100
 indent-width = 4
 
 # Currently assumes 3.12 (but can probably be loosened)

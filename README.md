@@ -1,7 +1,7 @@
 <img src="https://raw.githubusercontent.com/jaspersiebring/saltysplits/refs/heads/main/docs/assets/images/logo.png" alt="export" width="300">
 
 [![PyPI](https://img.shields.io/pypi/v/saltysplits)](https://pypi.org/project/saltysplits/)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/saltysplits)
+![python-version-from-pep-621-toml](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fjaspersiebring%2Fsaltysplits%2Frefs%2Fheads%2Fmain%2Fpyproject.toml)
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](http://saltysplits.com/)
 
 SaltySplits is a powerful Python library for the modeling of LiveSplit files and analysis of the speedrunning data within. It also features an experimental front-end (available at [saltysplits.com](https://saltysplits.com/)). 
